@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Logs Management</h1>
+            <div class="breadcrumb">
+                <a href="{{ url_for('landing') }}">Home</a> > Logs
+            </div>
+        </header>
+        
+        <main>
+            <div class="action-section">
+                <h2>Choose an Action</h2>
+                <div class="button-grid">
+                    <a href="{{ url_for('view_logs') }}" class="btn btn-secondary">
+                        <span class="btn-icon">📋</span>
+                        View Log
+                    </a>
+                    <a href="{{ url_for('add_log_form') }}" class="btn btn-primary">
+                        <span class="btn-icon">➕</span>
+                        Add Log
+                    </a>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2026 Log Management System. All rights reserved.</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Fetch basic stats (optional enhancement)
+        fetch('/view_logs')
+            .then(response => response.text())
+            .then(html => {
+                // This is a simple way to get count - in production you'd create a dedicated API
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const logEntries = doc.querySelectorAll('.log-entry');
+                document.getElementById('total-logs').textContent = logEntries.length;
+                document.getElementById('today-logs').textContent = '0'; // Would need proper date filtering
+            })
+            .catch(error => {
+                document.getElementById('total-logs').textContent = 'N/A';
+                document.getElementById('today-logs').textContent = 'N/A';
+            });
+    </script>
+</body>
+</html>

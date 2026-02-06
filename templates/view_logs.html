@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View All Logs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>View All Logs</h1>
+            <div class="breadcrumb">
+                <a href="{{ url_for('landing') }}">Home</a> > 
+                <a href="{{ url_for('logs') }}">Logs</a> > View Logs
+            </div>
+        </header>
+        <main>
+            <div class="logs-header">
+                <h2>Submitted Logs ({{ logs|length }} total)</h2>
+                <a href="{{ url_for('add_log_form') }}" class="btn btn-primary">Add New Log</a>
+            </div>
+
+            <div class="filter-bar">
+                <form method="GET" action="{{ url_for('view_logs') }}" class="filter-form">
+                    <div class="filter-field">
+                        <label for="location-filter">Filter by Location</label>
+                        <div class="select-wrapper">
+                            <select id="location-filter" name="location" onchange="this.form.submit()" aria-label="Filter logs by location">
+                                <option value="">All Locations</option>
+                                {% for location in unique_locations %}
+                                    <option value="{{ location }}" {% if selected_location and location.lower() == selected_location.lower() %}selected{% endif %}>
+                                        {{ location }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <span class="select-chevron">⌄</span>
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label for="campaign-filter">Filter by Campaign</label>
+                        <div class="select-wrapper">
+                            <select id="campaign-filter" name="campaign" onchange="this.form.submit()" aria-label="Filter logs by campaign">
+                                <option value="">All Campaigns</option>
+                                {% for campaign in unique_campaigns %}
+                                    <option value="{{ campaign }}" {% if selected_campaign == campaign %}selected{% endif %}>{{ campaign }}</option>
+                                {% endfor %}
+                            </select>
+                            <span class="select-chevron">⌄</span>
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label for="date-filter">Filter by Date</label>
+                        <div class="date-input-wrapper">
+                            <input type="date" id="date-filter" name="log_date" value="{{ selected_date }}" onchange="this.form.submit()" aria-label="Filter logs by date" class="date-input">
+                            <span class="date-icon">📅</span>
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label for="abnormal-filter">Filter by Status</label>
+                        <div class="select-wrapper">
+                            <select id="abnormal-filter" name="abnormal" onchange="this.form.submit()" aria-label="Filter logs by status">
+                                <option value="">All Entries</option>
+                                <option value="abnormal" {% if selected_abnormal == 'abnormal' %}selected{% endif %}>Abnormal Only</option>
+                                <option value="normal" {% if selected_abnormal == 'normal' %}selected{% endif %}>Normal Only</option>
+                            </select>
+                            <span class="select-chevron">⌄</span>
+                        </div>
+                    </div>
+                    <noscript>
+                        <button type="submit" class="btn btn-secondary">Apply</button>
+                    </noscript>
+                </form>
+            </div>
+            
+            {% if logs %}
+                <div class="logs-container">
+                    {% for log in logs %}
+                        <div class="log-entry {% if log.abnormal %}log-entry--abnormal{% endif %}">
+                            <div class="log-header">
+                                <div>
+                                    <h3>Log #{{ log.id }} - {{ log.location }}</h3>
+                                    <p class="log-date">{{ log.log_date or 'No date set' }}</p>
+                                </div>
+                                <div class="log-header-meta">
+                                    {% if log.abnormal %}
+                                        <span class="abnormal-pill">Abnormal</span>
+                                    {% endif %}
+                                    <span class="timestamp">{{ log.log_date or log.timestamp }}</span>
+                                </div>
+                            </div>
+                             
+                            <div class="log-content">
+                                <div class="log-actions">
+                                    <a href="{{ url_for('edit_log', log_id=log.id) }}" class="btn btn-secondary btn-small">Edit</a>
+                                    <form method="POST" action="{{ url_for('delete_log', log_id=log.id) }}" onsubmit="return confirm('Delete this log entry?');">
+                                        <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                                    </form>
+                                </div>
+                                <div class="log-field">
+                                    <strong>Campaign Number:</strong> {{ log.campaign_number }}
+                                </div>
+                                
+                                {% if log.errors %}
+                                    <div class="log-field">
+                                        <strong>Errors:</strong>
+                                        <p class="errors-text">{{ log.errors }}</p>
+                                    </div>
+                                {% endif %}
+                                
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No logs found</h3>
+                    <p>Start by adding your first log entry.</p>
+                    <a href="{{ url_for('add_log_form') }}" class="btn btn-primary">Add First Log</a>
+                </div>
+            {% endif %}
+        </main>
+        
+        <footer>
+            <p>&copy; 2026 Log Management System. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

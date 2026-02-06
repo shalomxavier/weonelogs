@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Log</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Add New Log</h1>
+            <div class="breadcrumb">
+                <a href="{{ url_for('landing') }}">Home</a> > 
+                <a href="{{ url_for('logs') }}">Logs</a> > Add Log
+            </div>
+        </header>
+        
+        <main>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash flash-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <div class="form-section">
+                <form method="POST" action="{{ url_for('submit_log') }}" class="log-form">
+                    <div class="form-group">
+                        <label>Locations *</label>
+                        <div class="location-selector">
+                            <div class="select-all">
+                                <input type="checkbox" id="select-all" />
+                                <label for="select-all">Select All Locations</label>
+                            </div>
+                            <div class="checkbox-grid">
+                                {% for location in locations %}
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="locations" value="{{ location }}">
+                                        <span>{{ location }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="campaign_number">Campaign Number *</label>
+                        <input type="text" id="campaign_number" name="campaign_number" required 
+                               placeholder="Enter campaign number (e.g., CAMP-001)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="log_date">Log Date *</label>
+                        <input type="date" id="log_date" name="log_date" value="{{ today }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="errors">Errors</label>
+                        <textarea id="errors" name="errors" rows="5" 
+                                  placeholder="Describe any errors encountered during posting..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="terminal_success">Terminal Success Count</label>
+                        <input type="number" id="terminal_success" name="terminal_success" min="0" placeholder="0" value="0">
+                    </div>
+
+                    <div class="form-group checkbox-inline">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="abnormal">
+                            <span>Mark as Abnormal</span>
+                        </label>
+                        <small class="helper-text">Abnormal logs will be highlighted in the list.</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save Log</button>
+                        <a href="{{ url_for('logs') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2026 Log Management System. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const selectAllCheckbox = document.getElementById('select-all');
+        const locationCheckboxes = document.querySelectorAll('input[name="locations"]');
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', (event) => {
+                locationCheckboxes.forEach(cb => {
+                    cb.checked = event.target.checked;
+                });
+            });
+
+            locationCheckboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const allChecked = Array.from(locationCheckboxes).every(box => box.checked);
+                    selectAllCheckbox.checked = allChecked;
+                });
+            });
+        }
+    </script>
+</body>
+</html>

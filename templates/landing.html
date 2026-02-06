@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Log Management System</h1>
+            <p>Manage your posting logs efficiently</p>
+        </header>
+        
+        <main>
+            <div class="hero-section">
+                <h2>Welcome to the Log Management Portal</h2>
+                <p>Track and manage your posting activities with our comprehensive logging system.</p>
+                <a href="{{ url_for('logs') }}" class="btn btn-primary btn-large">Posting Logs</a>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2026 Log Management System. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

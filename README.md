@@ -14,21 +14,32 @@ A Flask-based web application for managing posting logs with a clean, modern int
   - Total Items Successfully Posted (Facebook)
 - **View Logs Page**: Display all submitted logs with timestamps and statistics
 - **Responsive Design**: Works on desktop and mobile devices
-- **Data Persistence**: Logs stored in JSON file
+- **Data Persistence**: Logs stored in Firebase Firestore
 
 ## Installation
 
-1. Install Flask:
+1. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-2. Run the application:
+2. Provide Firebase credentials:
+   - Obtain the shared Firebase service-account JSON file (not tracked in git)
+   - Either place it in the project root with the name `weone-automation-backend-log-firebase-adminsdk-fbsvc-37b4b3fd3c.json`, **or** set an environment variable pointing to its location:
+     ```bash
+     # Windows (PowerShell)
+     setx FIREBASE_CREDENTIALS_PATH "C:\\path\\to\\service-account.json"
+
+     # macOS/Linux
+     export FIREBASE_CREDENTIALS_PATH="/path/to/service-account.json"
+     ```
+
+3. Run the application:
    ```bash
    python app.py
    ```
 
-3. Open your browser and navigate to `http://127.0.0.1:5000`
+4. Open your browser and navigate to `http://127.0.0.1:5000`
 
 ## Usage
 
@@ -56,14 +67,21 @@ windsurf-project/
 
 ## Data Storage
 
-Logs are stored in `logs.json` in the project root directory. Each log entry contains:
+Logs are stored in the `logs` collection inside the Firebase project (`weone-automation-backend-log`). Each log entry contains:
 - ID
 - Location
 - Campaign Number
 - Errors (if any)
 - Terminal posting count
 - Facebook posting count
+- Abnormal flag
 - Timestamp
+
+## Collaborating Securely
+
+1. **Credential sharing**: Exchange the Firebase service-account JSON file via a secure channel (password manager, encrypted archive, etc.). Do **not** commit it to the repository—`.gitignore` already excludes `*-firebase-adminsdk-*.json`.
+2. **Environment configuration**: Each collaborator sets `FIREBASE_CREDENTIALS_PATH` (or stores the file at the default path) so the Flask app can authenticate with Firebase.
+3. **Data sync**: Because Firestore is the single source of truth, all teammates automatically see the same data once authenticated.
 
 ## Technologies Used
 

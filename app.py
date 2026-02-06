@@ -10,9 +10,9 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FIREBASE_CREDENTIALS_PATH = os.path.join(
+FIREBASE_CREDENTIALS_PATH = os.getenv('FIREBASE_CREDENTIALS_PATH') or os.path.join(
     BASE_DIR,
-    'weone-automation-backend-log-firebase-adminsdk-fbsvc-3334b93cc2.json'
+    'weone-automation-backend-log-firebase-adminsdk-fbsvc-37b4b3fd3c.json'
 )
 FIREBASE_PROJECT_ID = 'weone-automation-backend-log'
 FIRESTORE_COLLECTION = 'logs'

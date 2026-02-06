@@ -268,6 +268,9 @@ def update_log(log_id):
         errors = request.form.get('errors', '').strip()
         terminal_items = request.form.get('terminal_items', '').strip()
         facebook_items = request.form.get('facebook_items', '').strip()
+        terminal_success = parse_int(
+            request.form.get('terminal_success'), existing_log.get('terminal_success', 0)
+        )
         log_date = request.form.get('log_date', '').strip() or current_date_str()
         abnormal = request.form.get('abnormal') == 'on'
 

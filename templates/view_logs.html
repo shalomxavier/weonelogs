@@ -100,6 +100,11 @@
                                 <div class="log-field">
                                     <strong>Campaign Number:</strong> {{ log.campaign_number }}
                                 </div>
+                                {% if log.terminal_success is not none %}
+                                    <div class="log-field">
+                                        <strong>Terminal Success:</strong> {{ log.terminal_success }}
+                                    </div>
+                                {% endif %}
                                 
                                 {% if log.errors %}
                                     <div class="log-field">

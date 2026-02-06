@@ -57,7 +57,7 @@
 
                     <div class="form-group">
                         <label for="log_date">Log Date *</label>
-                        <input type="date" id="log_date" name="log_date" value="{{ today }}" required>
+                        <input type="date" id="log_date" name="log_date" required>
                     </div>
                     
                     <div class="form-group">
@@ -68,15 +68,22 @@
 
                     <div class="form-group">
                         <label for="terminal_success">Terminal Success Count</label>
-                        <input type="number" id="terminal_success" name="terminal_success" min="0" placeholder="0" value="0">
+                        <input type="number" id="terminal_success" name="terminal_success" min="0" placeholder="Enter count">
                     </div>
 
-                    <div class="form-group checkbox-inline">
-                        <label class="checkbox-item">
-                            <input type="checkbox" name="abnormal">
-                            <span>Mark as Abnormal</span>
-                        </label>
-                        <small class="helper-text">Abnormal logs will be highlighted in the list.</small>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <div class="checkbox-inline status-options">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="status-normal" name="status_normal">
+                                <span>Normal</span>
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="status-abnormal" name="status_abnormal">
+                                <span>Abnormal</span>
+                            </label>
+                        </div>
+                        <small class="helper-text">Select exactly one status for the submitted logs.</small>
                     </div>
                     
                     <div class="form-actions">
@@ -95,6 +102,8 @@
     <script>
         const selectAllCheckbox = document.getElementById('select-all');
         const locationCheckboxes = document.querySelectorAll('input[name="locations"]');
+        const statusNormal = document.getElementById('status-normal');
+        const statusAbnormal = document.getElementById('status-abnormal');
 
         if (selectAllCheckbox) {
             selectAllCheckbox.addEventListener('change', (event) => {
@@ -110,6 +119,20 @@
                 });
             });
         }
+
+        const enforceExclusive = (primary, secondary) => {
+            if (!primary || !secondary) {
+                return;
+            }
+            primary.addEventListener('change', () => {
+                if (primary.checked) {
+                    secondary.checked = false;
+                }
+            });
+        };
+
+        enforceExclusive(statusNormal, statusAbnormal);
+        enforceExclusive(statusAbnormal, statusNormal);
     </script>
 </body>
 </html>

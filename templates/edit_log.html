@@ -63,12 +63,19 @@
                         <input type="number" id="terminal_success" name="terminal_success" min="0" value="{{ log.terminal_success or 0 }}">
                     </div>
 
-                    <div class="form-group checkbox-inline">
-                        <label class="checkbox-item">
-                            <input type="checkbox" name="abnormal" {% if log.abnormal %}checked{% endif %}>
-                            <span>Mark as Abnormal</span>
-                        </label>
-                        <small class="helper-text">Abnormal logs will be highlighted in the list.</small>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <div class="checkbox-inline status-options">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="status-normal" name="status_normal" {% if not log.abnormal %}checked{% endif %}>
+                                <span>Normal</span>
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="status-abnormal" name="status_abnormal" {% if log.abnormal %}checked{% endif %}>
+                                <span>Abnormal</span>
+                            </label>
+                        </div>
+                        <small class="helper-text">Select exactly one status.</small>
                     </div>
 
                     <div class="form-actions">
@@ -83,5 +90,25 @@
             <p>&copy; 2026 Log Management System. All rights reserved.</p>
         </footer>
     </div>
+    <script>
+        const normalCheckbox = document.getElementById('status-normal');
+        const abnormalCheckbox = document.getElementById('status-abnormal');
+
+        const enforceExclusive = (primary, secondary) => {
+            if (!primary || !secondary) {
+                return;
+            }
+            primary.addEventListener('change', () => {
+                if (primary.checked) {
+                    secondary.checked = false;
+                } else if (!secondary.checked) {
+                    secondary.checked = true;
+                }
+            });
+        };
+
+        enforceExclusive(normalCheckbox, abnormalCheckbox);
+        enforceExclusive(abnormalCheckbox, normalCheckbox);
+    </script>
 </body>
 </html>

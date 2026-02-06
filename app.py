@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from datetime import datetime
+from datetime import datetime, timedelta
 from difflib import SequenceMatcher
+from collections import defaultdict
 import os
 
 import firebase_admin
@@ -93,6 +94,13 @@ def locations_match(value, other, threshold=0.8):
     return SequenceMatcher(None, value_norm, other_norm).ratio() >= threshold
 
 
+def resolve_known_location(value):
+    for loc in LOCATIONS:
+        if locations_match(value, loc):
+            return loc
+    return None
+
+
 def get_unique_locations(logs, threshold=0.85):
     unique = []
     for log in logs:
@@ -120,6 +128,75 @@ def parse_int(value, default=0):
     except (TypeError, ValueError):
         return default
 
+
+def find_campaign_location_gaps(logs):
+    campaign_locations = defaultdict(set)
+
+    for log in logs:
+        campaign = (log.get('campaign_number') or '').strip()
+        if not campaign:
+            continue
+
+        matched_location = resolve_known_location(log.get('location', ''))
+        if matched_location:
+            campaign_locations[campaign].add(matched_location)
+
+    warnings = []
+    for campaign, present_locations in campaign_locations.items():
+        missing_locations = [loc for loc in LOCATIONS if loc not in present_locations]
+        if missing_locations:
+            warnings.append(
+                {
+                    'campaign': campaign,
+                    'missing_locations': missing_locations,
+                }
+            )
+
+    return sorted(warnings, key=lambda entry: entry['campaign'])
+
+
+def campaign_location_exists(campaign_number, location, exclude_id=None):
+    if not campaign_number or not location:
+        return False
+
+    canonical_location = resolve_known_location(location)
+    if not canonical_location:
+        return False
+
+    query = logs_collection.where('campaign_number', '==', campaign_number)
+    for doc in query.stream():
+        data = doc.to_dict() or {}
+        existing_id = data.get('id') or doc.id
+        if exclude_id and str(existing_id) == str(exclude_id):
+            continue
+
+        matched_location = resolve_known_location(data.get('location', ''))
+        if matched_location == canonical_location:
+            return True
+
+    return False
+
+
+def calculate_weekly_terminal_success(logs):
+    today = datetime.now().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=5)
+
+    total = 0
+    for log in logs:
+        log_date_str = (log.get('log_date') or '').strip()
+        if not log_date_str:
+            continue
+        try:
+            log_date = datetime.strptime(log_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            continue
+
+        if start_of_week <= log_date <= end_of_week:
+            total += parse_int(log.get('terminal_success'), 0)
+
+    return total
+
 @app.route('/')
 def landing():
     """Landing page with Posting Logs button"""
@@ -133,7 +210,7 @@ def logs():
 @app.route('/add_log')
 def add_log_form():
     """Form page to add new log"""
-    return render_template('add_log.html', locations=LOCATIONS, today=current_date_str())
+    return render_template('add_log.html', locations=LOCATIONS)
 
 @app.route('/submit_log', methods=['POST'])
 def submit_log():
@@ -143,9 +220,25 @@ def submit_log():
         selections = request.form.getlist('locations')
         campaign_number = request.form.get('campaign_number', '').strip()
         errors = request.form.get('errors', '').strip()
-        terminal_success = parse_int(request.form.get('terminal_success'))
-        log_date = request.form.get('log_date', '').strip() or current_date_str()
-        abnormal = request.form.get('abnormal') == 'on'
+        terminal_success_input = request.form.get('terminal_success', '').strip()
+        log_date = request.form.get('log_date', '').strip()
+
+        if not log_date:
+            flash('Please select a log date.', 'error')
+            return redirect(url_for('add_log_form'))
+
+        if not terminal_success_input:
+            flash('Please enter the terminal success count.', 'error')
+            return redirect(url_for('add_log_form'))
+
+        terminal_success = parse_int(terminal_success_input)
+
+        status_normal = request.form.get('status_normal') == 'on'
+        status_abnormal = request.form.get('status_abnormal') == 'on'
+        if status_normal == status_abnormal:
+            flash('Select exactly one status (Normal or Abnormal).', 'error')
+            return redirect(url_for('add_log_form'))
+        abnormal = status_abnormal
         
         # Validate required fields
         selected_locations = [loc for loc in selections if loc in LOCATIONS]
@@ -153,7 +246,13 @@ def submit_log():
         if not selected_locations or not campaign_number:
             flash('Please select at least one valid location and provide a Campaign Number.', 'error')
             return redirect(url_for('add_log_form'))
-        
+
+        duplicates = [loc for loc in selected_locations if campaign_location_exists(campaign_number, loc)]
+        if duplicates:
+            formatted = ', '.join(sorted(set(duplicates)))
+            flash(f'Campaign {campaign_number} already has entries for: {formatted}. Remove duplicates before submitting.', 'error')
+            return redirect(url_for('add_log_form'))
+
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         next_id = get_next_log_id()
 
@@ -223,6 +322,13 @@ def view_logs():
         ]
 
     unique_dates = get_unique_dates(filtered_logs)
+    weekly_terminal_success = calculate_weekly_terminal_success(filtered_logs)
+
+    other_filters_active = any([selected_location, selected_date, selected_abnormal])
+    if other_filters_active:
+        campaign_warnings = []
+    else:
+        campaign_warnings = find_campaign_location_gaps(filtered_logs)
 
     sorted_logs = sorted(
         filtered_logs,
@@ -239,6 +345,8 @@ def view_logs():
         selected_campaign=selected_campaign,
         selected_date=selected_date,
         selected_abnormal=selected_abnormal,
+        weekly_terminal_success=weekly_terminal_success,
+        campaign_warnings=campaign_warnings,
     )
 
 
@@ -268,14 +376,32 @@ def update_log(log_id):
         errors = request.form.get('errors', '').strip()
         terminal_items = request.form.get('terminal_items', '').strip()
         facebook_items = request.form.get('facebook_items', '').strip()
-        terminal_success = parse_int(
-            request.form.get('terminal_success'), existing_log.get('terminal_success', 0)
-        )
-        log_date = request.form.get('log_date', '').strip() or current_date_str()
-        abnormal = request.form.get('abnormal') == 'on'
+        terminal_success_input = request.form.get('terminal_success', '').strip()
+        log_date = request.form.get('log_date', '').strip()
+
+        if not log_date:
+            flash('Please select a log date.', 'error')
+            return redirect(url_for('edit_log', log_id=log_id))
+
+        if not terminal_success_input:
+            flash('Please enter the terminal success count.', 'error')
+            return redirect(url_for('edit_log', log_id=log_id))
+
+        terminal_success = parse_int(terminal_success_input)
+
+        status_normal = request.form.get('status_normal') == 'on'
+        status_abnormal = request.form.get('status_abnormal') == 'on'
+        if status_normal == status_abnormal:
+            flash('Select exactly one status (Normal or Abnormal).', 'error')
+            return redirect(url_for('edit_log', log_id=log_id))
+        abnormal = status_abnormal
 
         if location not in LOCATIONS or not campaign_number:
             flash('Please select a valid location and provide a Campaign Number.', 'error')
+            return redirect(url_for('edit_log', log_id=log_id))
+
+        if campaign_location_exists(campaign_number, location, exclude_id=log_id):
+            flash('Another log already exists for this Campaign and Location combination.', 'error')
             return redirect(url_for('edit_log', log_id=log_id))
 
         updated_log = {

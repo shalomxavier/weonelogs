@@ -340,6 +340,57 @@ main {
     border-bottom: 2px solid #e1e8ed;
 }
 
+.campaign-warnings {
+    background-color: #fffaf0;
+    border: 1px solid #f5c16c;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(245, 193, 108, 0.25);
+}
+
+.warning-header h3 {
+    color: #c47f11;
+    margin-bottom: 0.5rem;
+}
+
+.warning-header p {
+    color: #7f6a46;
+    font-size: 0.95rem;
+}
+
+.warning-list {
+    list-style: none;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.warning-item {
+    background: white;
+    border-radius: 8px;
+    border: 1px dashed #f5c16c;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.warning-campaign {
+    color: #2c3e50;
+}
+
+.warning-missing {
+    color: #7f6a46;
+}
+
+.missing-list {
+    color: #c0392b;
+    font-weight: 600;
+}
+
 .filter-bar {
     background: #f8f9fa;
     border: 1px solid #e1e8ed;

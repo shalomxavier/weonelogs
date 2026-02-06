@@ -17,9 +17,34 @@
         </header>
         <main>
             <div class="logs-header">
-                <h2>Submitted Logs ({{ logs|length }} total)</h2>
+                <h2>
+                    Submitted Logs ({{ logs|length }} total)
+                    <span class="weekly-total">• Weekly Terminal Success: {{ weekly_terminal_success }}</span>
+                </h2>
                 <a href="{{ url_for('add_log_form') }}" class="btn btn-primary">Add New Log</a>
             </div>
+
+            {% if campaign_warnings %}
+                <section class="campaign-warnings" aria-live="polite">
+                    <div class="warning-header">
+                        <h3>Campaign Coverage Alerts</h3>
+                        <p>Each campaign must have logs for every location. Missing locations are listed below.</p>
+                    </div>
+                    <ul class="warning-list">
+                        {% for warning in campaign_warnings %}
+                            <li class="warning-item">
+                                <div class="warning-campaign">
+                                    <strong>Campaign {{ warning.campaign }}</strong>
+                                </div>
+                                <div class="warning-missing">
+                                    Missing locations:
+                                    <span class="missing-list">{{ warning.missing_locations | join(', ') }}</span>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            {% endif %}
 
             <div class="filter-bar">
                 <form method="GET" action="{{ url_for('view_logs') }}" class="filter-form">
@@ -130,5 +155,46 @@
             <p>&copy; 2026 Log Management System. All rights reserved.</p>
         </footer>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const filterForm = document.querySelector('.filter-form');
+            if (!filterForm) return;
+
+            const storageKey = 'logFilters';
+            const fieldNames = ['location', 'campaign', 'log_date', 'abnormal'];
+
+            const savedFilters = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            let shouldSubmit = false;
+
+            fieldNames.forEach(function (name) {
+                const field = filterForm.querySelector(`[name="${name}"]`);
+                if (!field || !(name in savedFilters)) {
+                    return;
+                }
+                if (field.value !== savedFilters[name]) {
+                    field.value = savedFilters[name];
+                    shouldSubmit = true;
+                }
+            });
+
+            if (shouldSubmit) {
+                filterForm.submit();
+            }
+
+            const persistFilters = function () {
+                const current = {};
+                fieldNames.forEach(function (name) {
+                    const field = filterForm.querySelector(`[name="${name}"]`);
+                    if (field) {
+                        current[name] = field.value || '';
+                    }
+                });
+                localStorage.setItem(storageKey, JSON.stringify(current));
+            };
+
+            filterForm.addEventListener('change', persistFilters);
+        });
+    </script>
 </body>
 </html>

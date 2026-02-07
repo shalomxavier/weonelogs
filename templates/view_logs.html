@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View All Logs</title>
+    <title>View Logs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>View All Logs</h1>
+            <h1>View Logs</h1>
             <div class="breadcrumb">
-                <a href="{{ url_for('landing') }}">Home</a> > 
-                <a href="{{ url_for('logs') }}">Logs</a> > View Logs
+                <a href="{{ url_for('landing') }}">Home</a> <span>/</span>
+                <a href="{{ url_for('logs') }}">Logs</a> <span>/</span> View Logs
             </div>
         </header>
         <main>
@@ -78,7 +81,6 @@
                         <label for="date-filter">Filter by Date</label>
                         <div class="date-input-wrapper">
                             <input type="date" id="date-filter" name="log_date" value="{{ selected_date }}" onchange="this.form.submit()" aria-label="Filter logs by date" class="date-input">
-                            <span class="date-icon">📅</span>
                         </div>
                     </div>
                     <div class="filter-field">
@@ -152,7 +154,7 @@
         </main>
         
         <footer>
-            <p>&copy; 2026 Log Management System. All rights reserved.</p>
+            <p>&copy; 2026 Log Management System</p>
         </footer>
     </div>
 

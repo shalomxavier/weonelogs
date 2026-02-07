@@ -155,15 +155,18 @@ def find_campaign_location_gaps(logs):
     return sorted(warnings, key=lambda entry: entry['campaign'])
 
 
-def campaign_location_exists(campaign_number, location, exclude_id=None):
-    if not campaign_number or not location:
+def campaign_location_exists(campaign_number, location, log_date, exclude_id=None):
+    if not campaign_number or not location or not log_date:
         return False
 
     canonical_location = resolve_known_location(location)
     if not canonical_location:
         return False
 
-    query = logs_collection.where('campaign_number', '==', campaign_number)
+    query = (
+        logs_collection.where('campaign_number', '==', campaign_number)
+        .where('log_date', '==', log_date)
+    )
     for doc in query.stream():
         data = doc.to_dict() or {}
         existing_id = data.get('id') or doc.id
@@ -247,7 +250,10 @@ def submit_log():
             flash('Please select at least one valid location and provide a Campaign Number.', 'error')
             return redirect(url_for('add_log_form'))
 
-        duplicates = [loc for loc in selected_locations if campaign_location_exists(campaign_number, loc)]
+        duplicates = [
+            loc for loc in selected_locations
+            if campaign_location_exists(campaign_number, loc, log_date)
+        ]
         if duplicates:
             formatted = ', '.join(sorted(set(duplicates)))
             flash(f'Campaign {campaign_number} already has entries for: {formatted}. Remove duplicates before submitting.', 'error')
@@ -400,8 +406,8 @@ def update_log(log_id):
             flash('Please select a valid location and provide a Campaign Number.', 'error')
             return redirect(url_for('edit_log', log_id=log_id))
 
-        if campaign_location_exists(campaign_number, location, exclude_id=log_id):
-            flash('Another log already exists for this Campaign and Location combination.', 'error')
+        if campaign_location_exists(campaign_number, location, log_date, exclude_id=log_id):
+            flash('Another log already exists for this Campaign, Location, and Date combination.', 'error')
             return redirect(url_for('edit_log', log_id=log_id))
 
         updated_log = {

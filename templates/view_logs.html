@@ -119,9 +119,20 @@
                              
                             <div class="log-content">
                                 <div class="log-actions">
-                                    <a href="{{ url_for('edit_log', log_id=log.id) }}" class="btn btn-secondary btn-small">Edit</a>
+                                    <a href="{{ url_for('edit_log', log_id=log.id) }}" class="btn btn-secondary icon-button" aria-label="Edit log {{ log.id }}">
+                                        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                                            <path d="M3 14.25V17h2.75L15.81 6.94l-2.75-2.75L3 14.25zm13.71-7.04a1 1 0 0 0 0-1.41l-1.51-1.51a1 1 0 0 0-1.41 0l-1.18 1.18 2.75 2.75 1.35-1.01z"/>
+                                        </svg>
+                                        <span class="sr-only">Edit log {{ log.id }}</span>
+                                    </a>
                                     <form method="POST" action="{{ url_for('delete_log', log_id=log.id) }}" onsubmit="return confirm('Delete this log entry?');">
-                                        <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                                        <button type="submit" class="btn btn-danger icon-button" aria-label="Delete log {{ log.id }}">
+                                            <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                                                <path d="M6 7h1v9H6V7zm3 0h1v9H9V7zm3 0h1v9h-1V7z"/>
+                                                <path d="M3 5h14v1H3V5zm2.5 0V4h9v1h1V4a1 1 0 0 0-1-1h-9a1 1 0 0 0-1 1v1h1zM15 6v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h10z"/>
+                                            </svg>
+                                            <span class="sr-only">Delete log {{ log.id }}</span>
+                                        </button>
                                     </form>
                                 </div>
                                 <div class="log-field">

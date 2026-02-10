@@ -729,19 +729,25 @@ main {
     color: var(--text-secondary);
 }
 
+.log-field--errors {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    padding: 0.75rem;
+    margin-top: 0.75rem;
+}
+
 .log-field strong {
     color: var(--text);
     font-weight: 500;
 }
 
 .errors-text {
-    background: var(--warning-bg);
-    border: 1px solid var(--warning-border);
-    border-radius: var(--radius-xs);
+    background: #f7f7f7;
     padding: 0.5rem 0.75rem;
     margin-top: 0.35rem;
     font-style: normal;
-    color: var(--warning);
+    color: #666;
     font-size: 0.85rem;
 }
 

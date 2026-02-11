@@ -151,6 +151,18 @@
                                         <span class="sr-only">Edit this log</span>
                                     </a>
                                     <form method="POST" action="{{ url_for('delete_log', log_id=log.id) }}" onsubmit="return confirm('Delete this log entry?');">
+                                        {% for location in selected_locations %}
+                                            <input type="hidden" name="location" value="{{ location }}">
+                                        {% endfor %}
+                                        {% for campaign in selected_campaigns %}
+                                            <input type="hidden" name="campaign" value="{{ campaign }}">
+                                        {% endfor %}
+                                        {% if selected_date %}
+                                            <input type="hidden" name="log_date" value="{{ selected_date }}">
+                                        {% endif %}
+                                        {% if selected_abnormal %}
+                                            <input type="hidden" name="abnormal" value="{{ selected_abnormal }}">
+                                        {% endif %}
                                         <button type="submit" class="btn btn-danger icon-button" aria-label="Delete this log">
                                             <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
                                                 <path d="M6 7h1v9H6V7zm3 0h1v9H9V7zm3 0h1v9h-1V7z"/>

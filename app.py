@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from difflib import SequenceMatcher
 from collections import defaultdict
 import os
+from urllib.parse import urlencode
 
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -476,7 +477,25 @@ def delete_log(log_id):
 
         doc_ref.delete()
         flash('Log deleted successfully.', 'success')
-        return redirect(url_for('view_logs'))
+        redirect_url = url_for('view_logs')
+
+        filter_pairs = []
+        for key in ('location', 'campaign'):
+            for value in request.form.getlist(key):
+                if value.strip():
+                    filter_pairs.append((key, value.strip()))
+
+        log_date = request.form.get('log_date', '').strip()
+        abnormal = request.form.get('abnormal', '').strip()
+        if log_date:
+            filter_pairs.append(('log_date', log_date))
+        if abnormal:
+            filter_pairs.append(('abnormal', abnormal))
+
+        if filter_pairs:
+            redirect_url = f"{redirect_url}?{urlencode(filter_pairs, doseq=True)}"
+
+        return redirect(redirect_url)
 
     except Exception as e:
         flash(f'Error deleting log: {str(e)}', 'error')

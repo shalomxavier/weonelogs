@@ -53,29 +53,57 @@
                 <form method="GET" action="{{ url_for('view_logs') }}" class="filter-form">
                     <div class="filter-field">
                         <label for="location-filter">Filter by Location</label>
-                        <div class="select-wrapper">
-                            <select id="location-filter" name="location" onchange="this.form.submit()" aria-label="Filter logs by location">
-                                <option value="">All Locations</option>
+                        <details class="multi-dropdown" data-filter-group="location">
+                            <summary class="multi-dropdown__trigger" id="location-filter">
+                                <span>
+                                    {% if selected_locations %}
+                                        {{ selected_locations | length }} selected
+                                    {% else %}
+                                        All Locations
+                                    {% endif %}
+                                </span>
+                                <span class="select-chevron">⌄</span>
+                            </summary>
+                            <div class="multi-dropdown__menu" aria-label="Filter logs by locations">
+                                <div class="multi-dropdown__controls">
+                                    <button type="button" class="multi-dropdown__control" data-control="select-all">Select All</button>
+                                    <button type="button" class="multi-dropdown__control" data-control="clear-all">Clear All</button>
+                                </div>
                                 {% for location in unique_locations %}
-                                    <option value="{{ location }}" {% if selected_location and location.lower() == selected_location.lower() %}selected{% endif %}>
-                                        {{ location }}
-                                    </option>
+                                    <label class="multi-dropdown__option">
+                                        <input type="checkbox" name="location" value="{{ location }}" {% if location in selected_locations %}checked{% endif %}>
+                                        <span>{{ location }}</span>
+                                    </label>
                                 {% endfor %}
-                            </select>
-                            <span class="select-chevron">⌄</span>
-                        </div>
+                            </div>
+                        </details>
                     </div>
                     <div class="filter-field">
                         <label for="campaign-filter">Filter by Campaign</label>
-                        <div class="select-wrapper">
-                            <select id="campaign-filter" name="campaign" onchange="this.form.submit()" aria-label="Filter logs by campaign">
-                                <option value="">All Campaigns</option>
+                        <details class="multi-dropdown" data-filter-group="campaign">
+                            <summary class="multi-dropdown__trigger" id="campaign-filter">
+                                <span>
+                                    {% if selected_campaigns %}
+                                        {{ selected_campaigns | length }} selected
+                                    {% else %}
+                                        All Campaigns
+                                    {% endif %}
+                                </span>
+                                <span class="select-chevron">⌄</span>
+                            </summary>
+                            <div class="multi-dropdown__menu" aria-label="Filter logs by campaigns">
+                                <div class="multi-dropdown__controls">
+                                    <button type="button" class="multi-dropdown__control" data-control="select-all">Select All</button>
+                                    <button type="button" class="multi-dropdown__control" data-control="clear-all">Clear All</button>
+                                </div>
                                 {% for campaign in unique_campaigns %}
-                                    <option value="{{ campaign }}" {% if selected_campaign == campaign %}selected{% endif %}>{{ campaign }}</option>
+                                    <label class="multi-dropdown__option">
+                                        <input type="checkbox" name="campaign" value="{{ campaign }}" {% if campaign in selected_campaigns %}checked{% endif %}>
+                                        <span>{{ campaign }}</span>
+                                    </label>
                                 {% endfor %}
-                            </select>
-                            <span class="select-chevron">⌄</span>
-                        </div>
+                            </div>
+                        </details>
                     </div>
                     <div class="filter-field">
                         <label for="date-filter">Filter by Date</label>
@@ -170,6 +198,44 @@
             if (window.location.search) {
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
+
+            document.querySelectorAll('.multi-dropdown').forEach(function (dropdown) {
+                const form = dropdown.closest('form');
+                let isDirty = false;
+                const markDirty = () => { isDirty = true; };
+
+                dropdown.querySelectorAll('input[type="checkbox"]').forEach(function (checkbox) {
+                    checkbox.addEventListener('change', markDirty);
+                });
+
+                dropdown.querySelectorAll('.multi-dropdown__control').forEach(function (button) {
+                    button.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        const action = button.dataset.control;
+                        const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
+                        if (action === 'select-all') {
+                            checkboxes.forEach(cb => { if (!cb.checked) { cb.checked = true; markDirty(); } });
+                        } else if (action === 'clear-all') {
+                            checkboxes.forEach(cb => { if (cb.checked) { cb.checked = false; markDirty(); } });
+                        }
+                    });
+                });
+
+                dropdown.addEventListener('toggle', function () {
+                    if (!dropdown.open && isDirty && form) {
+                        isDirty = false;
+                        form.submit();
+                    }
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                document.querySelectorAll('.multi-dropdown[open]').forEach(function (dropdown) {
+                    if (!dropdown.contains(event.target)) {
+                        dropdown.open = false;
+                    }
+                });
+            });
         });
     </script>
 </body>

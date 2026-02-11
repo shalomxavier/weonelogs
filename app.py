@@ -314,15 +314,22 @@ def view_logs():
     logs = filter_recent_logs(load_logs(), days=8)
     unique_locations = get_unique_locations(logs)
     
-    selected_location = request.args.get('location', '').strip()
-    selected_campaign = request.args.get('campaign', '').strip()
+    selected_locations = [
+        value.strip() for value in request.args.getlist('location') if value.strip()
+    ]
+    selected_campaigns = [
+        value.strip() for value in request.args.getlist('campaign') if value.strip()
+    ]
     selected_date = request.args.get('log_date', '').strip()
     selected_abnormal = request.args.get('abnormal', '').strip()
 
-    if selected_location:
+    if selected_locations:
         filtered_logs = [
             log for log in logs
-            if locations_match(log.get('location', ''), selected_location)
+            if any(
+                locations_match(log.get('location', ''), selected_location)
+                for selected_location in selected_locations
+            )
         ]
     else:
         filtered_logs = logs
@@ -342,18 +349,23 @@ def view_logs():
 
     unique_campaigns = get_unique_campaigns(filtered_logs)
 
-    if selected_campaign and selected_campaign not in unique_campaigns:
-        selected_campaign = ''
-    if selected_campaign:
+    if selected_campaigns:
+        selected_campaigns = [
+            campaign for campaign in selected_campaigns
+            if campaign in unique_campaigns
+        ]
+    if selected_campaigns:
         filtered_logs = [
             log for log in filtered_logs
-            if log.get('campaign_number', '').strip() == selected_campaign
+            if log.get('campaign_number', '').strip() in selected_campaigns
         ]
 
     unique_dates = get_unique_dates(filtered_logs)
     weekly_terminal_success = calculate_weekly_terminal_success(filtered_logs)
 
-    other_filters_active = any([selected_location, selected_date, selected_abnormal])
+    other_filters_active = any(
+        [selected_locations, selected_campaigns, selected_date, selected_abnormal]
+    )
     if other_filters_active:
         campaign_warnings = []
     else:
@@ -370,8 +382,8 @@ def view_logs():
         unique_locations=unique_locations,
         unique_campaigns=unique_campaigns,
         unique_dates=unique_dates,
-        selected_location=selected_location,
-        selected_campaign=selected_campaign,
+        selected_locations=selected_locations,
+        selected_campaigns=selected_campaigns,
         selected_date=selected_date,
         selected_abnormal=selected_abnormal,
         weekly_terminal_success=weekly_terminal_success,

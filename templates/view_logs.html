@@ -110,9 +110,6 @@
                                     <p class="log-date">{{ log.log_date or 'No date set' }}</p>
                                 </div>
                                 <div class="log-header-meta">
-                                    {% if log.abnormal %}
-                                        <span class="abnormal-pill">Abnormal</span>
-                                    {% endif %}
                                     <span class="timestamp">{{ log.log_date or log.timestamp }}</span>
                                 </div>
                             </div>
@@ -146,7 +143,6 @@
                                 
                                 {% if log.errors %}
                                     <div class="log-field log-field--errors">
-                                        <span class="log-field-label">Errors</span>
                                         <p class="errors-text">{{ log.errors }}</p>
                                     </div>
                                 {% endif %}

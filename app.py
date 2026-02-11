@@ -51,6 +51,29 @@ def load_logs():
     return logs
 
 
+def filter_recent_logs(logs, days=8):
+    """Return logs whose log_date falls within the last `days` days inclusive."""
+    if days <= 0:
+        return []
+
+    today = datetime.now().date()
+    window_start = today - timedelta(days=days - 1)
+
+    recent_logs = []
+    for log in logs:
+        date_str = (log.get('log_date') or '').strip()
+        if not date_str:
+            continue
+        try:
+            log_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            continue
+        if window_start <= log_date <= today:
+            recent_logs.append(log)
+
+    return recent_logs
+
+
 def get_next_log_id():
     """Get the next sequential log ID"""
     query = logs_collection.order_by('id', direction=firestore.Query.DESCENDING).limit(1)
@@ -288,7 +311,7 @@ def submit_log():
 @app.route('/view_logs')
 def view_logs():
     """Display all submitted logs"""
-    logs = load_logs()
+    logs = filter_recent_logs(load_logs(), days=8)
     unique_locations = get_unique_locations(logs)
     
     selected_location = request.args.get('location', '').strip()

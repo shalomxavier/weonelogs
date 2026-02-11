@@ -212,12 +212,14 @@ main {
 }
 
 .icon-button.btn-danger {
-    border-color: var(--danger-border);
-    color: var(--danger);
+    border-color: var(--text);
+    background: var(--text);
+    color: #fff;
 }
 
 .icon-button.btn-danger:hover {
-    background: var(--danger-bg);
+    background: #000;
+    border-color: #000;
 }
 
 .icon-button.btn-secondary {
@@ -659,7 +661,7 @@ main {
 }
 
 .log-header {
-    background: var(--surface-alt);
+    background: var(--surface);
     color: var(--text);
     padding: 0.85rem 1.25rem;
     display: flex;
@@ -692,13 +694,11 @@ main {
 }
 
 .log-entry--abnormal {
-    border: 1px solid var(--danger-border);
-    background: var(--danger-bg);
+    background: var(--surface);
 }
 
 .log-entry--abnormal .log-header {
-    background: #fef2f2;
-    border-bottom-color: var(--danger-border);
+    background: var(--surface);
 }
 
 .abnormal-pill {
@@ -730,7 +730,7 @@ main {
 }
 
 .log-field--errors {
-    background: var(--surface-alt);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-xs);
     padding: 0.75rem;
@@ -743,12 +743,16 @@ main {
 }
 
 .errors-text {
-    background: #f7f7f7;
+    background: transparent;
     padding: 0.5rem 0.75rem;
     margin-top: 0.35rem;
     font-style: normal;
     color: #666;
     font-size: 0.85rem;
+}
+
+.log-entry--abnormal .errors-text {
+    color: var(--danger);
 }
 
 .log-stats {
